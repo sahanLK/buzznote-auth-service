@@ -1,4 +1,4 @@
-# 📧 Email Newsletter Platform – Backend (Spring Boot)
+# 📧 Buzznote - Email Newsletter Platform – Backend (Spring Boot)
 
 This is the backend service for the Email Newsletter Platform, built with **Spring Boot**. It handles subscriber management, email scheduling, campaign creation, and delivery logic.
 
