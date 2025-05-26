@@ -4,8 +4,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,9 +34,12 @@ public class UserController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginReq user) {
         try {
-            authenticationManager
-                    .authenticate(new UsernamePasswordAuthenticationToken(user.getEmail(), user.getPassword()))
-                    .isAuthenticated();
+            Authentication authentication = authenticationManager
+                    .authenticate(new UsernamePasswordAuthenticationToken(user.getEmail(), user.getPassword()));
+            if (!authentication.isAuthenticated()) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid Credentials");
+            }
+
             User fetchedUser = service.findUserByEmail(user.getEmail())
                     .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
@@ -54,5 +59,10 @@ public class UserController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Email already exists");
         }
+    }
+
+    @GetMapping("/posts")
+    public String protectedRoute() {
+        return "Something is Protected";
     }
 }

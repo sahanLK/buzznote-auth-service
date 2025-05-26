@@ -16,13 +16,7 @@ import lombok.RequiredArgsConstructor;
 public class UserService {
 
     private final UserRepo repo;
-
     private final PasswordEncoder passwordEncoder;
-
-    // public UserService(UserRepo userRepo, PasswordEncoder passwordEncoder) {
-    //     this.repo = userRepo;
-    //     this.passwordEncoder = passwordEncoder;
-    // }
 
     public void registerUser(RegisterReq user) {
         User newUser = new User();

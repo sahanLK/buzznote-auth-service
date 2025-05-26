@@ -11,7 +11,7 @@ import com.buzznote.buzznote.models.User;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public class CustomUserDetails implements UserDetails {
+public class UserPrincipal implements UserDetails {
     private final User user;
 
     @Override
@@ -29,7 +29,6 @@ public class CustomUserDetails implements UserDetails {
         return user.getEmail();
     }
 
-    // These are required for compatibility with Spring Security
     @Override
     public boolean isAccountNonExpired() {
         return true;

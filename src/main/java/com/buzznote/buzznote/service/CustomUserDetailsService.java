@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.buzznote.buzznote.models.User;
 import com.buzznote.buzznote.repo.UserRepo;
-import com.buzznote.buzznote.security.CustomUserDetails;
+import com.buzznote.buzznote.security.UserPrincipal;
 
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
@@ -19,7 +19,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         User user = repo.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with: " + email));
-        return new CustomUserDetails(user);
+        return new UserPrincipal(user);
     }
 
 }
