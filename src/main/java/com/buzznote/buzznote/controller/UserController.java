@@ -1,5 +1,7 @@
 package com.buzznote.buzznote.controller;
 
+import java.security.Principal;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -59,6 +61,11 @@ public class UserController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Email already exists");
         }
+    }
+
+    @GetMapping("/user-details")
+    public ResponseEntity<?> userDetails(Principal user) {
+        return ResponseEntity.ok().body(user);
     }
 
     @GetMapping("/posts")
