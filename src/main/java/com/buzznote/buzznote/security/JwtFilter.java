@@ -1,4 +1,4 @@
-package com.buzznote.buzznote.config;
+package com.buzznote.buzznote.security;
 
 import java.io.IOException;
 
@@ -22,8 +22,6 @@ public class JwtFilter extends OncePerRequestFilter {
     @Autowired
     private JwtUtil jwtUtils;
 
-    private UserDetails userDetails;
-
     @Autowired
     private UserDetailsService userDetailsService;
 
@@ -39,8 +37,8 @@ public class JwtFilter extends OncePerRequestFilter {
             UserDetails userDetail = userDetailsService.loadUserByUsername(username);
 
             if (jwtUtils.validateToken(token, userDetail)) {
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetail,
-                        null, userDetail.getAuthorities());
+                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                        userDetail, null, userDetail.getAuthorities());
 
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }

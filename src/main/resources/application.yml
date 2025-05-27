@@ -1,0 +1,59 @@
+spring:
+  application:
+    name: buzznote
+
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope:
+              - openid
+              - profile
+              - email
+            redirect-uri: ${GOOGLE_REDIRECT_URI}
+
+          # linkedin:
+          #   client-id: ${LINKEDIN_CLIENT_ID}
+          #   client-secret: ${LINKEDIN_CLIENT_SECRET}
+          #   scope:
+          #     - openid
+          #     - profile
+          #     - email
+          #   redirect-uri: ${LINKEDIN_REDIRECT_URI}
+
+        # provider:
+        #   google:
+        #     authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
+        #     token-uri: https://oauth2.googleapis.com/token
+        #     user-info-uri: https://openidconnect.googleapis.com/v1/userinfo
+        #     user-name-attribute: sub
+
+server:
+  port: 8081
+  servlet:
+    context-path: /api
+    # session:
+    #   cookie:
+    #     same-site: strict
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+    org.springframework.web: DEBUG
+    com.:
+      buzznote: DEBUG
