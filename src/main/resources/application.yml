@@ -15,8 +15,12 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
     show-sql: true
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migrations
 
   security:
     oauth2:
