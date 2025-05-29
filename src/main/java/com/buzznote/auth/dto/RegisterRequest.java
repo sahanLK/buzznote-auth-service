@@ -1,4 +1,4 @@
-package com.buzznote.buzznote.dto;
+package com.buzznote.auth.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class LoginRes {
-    private String token;
+public class RegisterRequest {
+    private String email;
+    private String password;
 }

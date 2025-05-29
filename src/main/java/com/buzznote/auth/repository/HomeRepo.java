@@ -1,4 +1,4 @@
-package com.buzznote.buzznote.repository;
+package com.buzznote.auth.repository;
 
 // import org.springframework.stereotype.Repository;
 

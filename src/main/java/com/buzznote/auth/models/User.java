@@ -1,4 +1,4 @@
-package com.buzznote.buzznote.models;
+package com.buzznote.auth.models;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;

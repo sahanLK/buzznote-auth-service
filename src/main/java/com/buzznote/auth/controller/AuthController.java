@@ -1,0 +1,100 @@
+package com.buzznote.auth.controller;
+
+import com.buzznote.auth.dto.LoginRequest;
+import com.buzznote.auth.dto.LoginResponse;
+import com.buzznote.auth.dto.RegisterRequest;
+import com.buzznote.auth.models.User;
+import com.buzznote.auth.service.AuthService;
+import com.buzznote.auth.service.JwtService;
+import com.buzznote.auth.service.RedisService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.web.bind.annotation.*;
+
+import java.security.Principal;
+
+@RestController
+@RequestMapping("/auth")
+@RequiredArgsConstructor
+public class AuthController {
+
+    private final AuthService authService;
+    private final AuthenticationManager authenticationManager;
+    private final JwtService jwtService;
+
+    @Autowired
+    private RedisService redisService;
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody LoginRequest user, HttpServletResponse response) {
+        try {
+            Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(user.getEmail(), user.getPassword()));
+            if (!authentication.isAuthenticated()) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid Credentials");
+            }
+
+            User fetchedUser = authService.findUserByEmail(user.getEmail()).orElseThrow(() -> new UsernameNotFoundException("User not found"));
+            String accessToken = jwtService.createAccessToken(fetchedUser);
+            String refreshToken = jwtService.createRefreshToken(fetchedUser);
+            response.addCookie(AuthService.getCookie("refreshToken", refreshToken, "/api/auth/refresh-token"));
+
+            redisService.setAccessToken(fetchedUser.getEmail(), accessToken);
+            redisService.setRefreshToken(fetchedUser.getEmail(), refreshToken);
+            return ResponseEntity.ok(new LoginResponse(accessToken));
+
+        } catch (AuthenticationException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<?> register(@RequestBody RegisterRequest user) {
+        try {
+            authService.registerUser(user);
+            return ResponseEntity.status(HttpStatus.CREATED).body(user);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Email already exists");
+        }
+    }
+
+    @GetMapping("/user-details")
+    public ResponseEntity<?> userDetails(Principal user) {
+        return ResponseEntity.ok().body(user);
+    }
+
+    @GetMapping("/refresh-token")
+    public ResponseEntity<?> refreshToken(@CookieValue String refreshToken, HttpServletRequest request, HttpServletResponse response) {
+        User user = authService.findUserByEmail(jwtService.extractUsername(refreshToken)).orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        if (jwtService.validateRefreshToken(refreshToken)) {
+            if (redisService.isValidRefreshToken(user.getEmail(), refreshToken)) {
+                String newRefreshToken = jwtService.createRefreshToken(user);
+                String newAccessToken = jwtService.createAccessToken(user);
+                response.addCookie(AuthService.getCookie("refreshToken", newRefreshToken, "/api/auth/refresh-token"));
+
+                redisService.setAccessToken(user.getEmail(), newAccessToken);
+                redisService.setRefreshToken(user.getEmail(), newRefreshToken);
+                return ResponseEntity.ok().body(new LoginResponse(newAccessToken));
+            } else {
+                System.out.println("Old refresh token");
+            }
+
+        }
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Please sign in again");
+    }
+
+    @GetMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
+        response.addCookie(AuthService.getCookie("refreshToken", null, "/api/auth/refresh-token"));
+        return ResponseEntity.status(200).body("Logged out");
+    }
+}

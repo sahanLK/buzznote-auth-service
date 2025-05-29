@@ -1,4 +1,4 @@
-package com.buzznote.buzznote.controller;
+package com.buzznote.auth.controller;
 
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.GetMapping;
