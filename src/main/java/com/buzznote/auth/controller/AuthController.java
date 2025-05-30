@@ -80,7 +80,7 @@ public class AuthController {
     }
 
     @GetMapping("/refresh-token")
-    public ResponseEntity<?> refreshToken(@CookieValue String refreshToken, HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<?> refreshToken(@CookieValue String refreshToken, HttpServletResponse response) {
         User user = authService.findUserByEmail(jwtService.extractUsername(refreshToken)).orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         if (jwtService.validateRefreshToken(refreshToken)) {
@@ -91,12 +91,11 @@ public class AuthController {
 
                 redisService.setAccessToken(user.getEmail(), newAccessToken);
                 redisService.setRefreshToken(user.getEmail(), newRefreshToken);
+                logger.info("Token refresh successful: {}", user.getEmail());
                 return ResponseEntity.ok().body(new LoginResponse(newAccessToken));
-            } else {
-                System.out.println("Old refresh token");
             }
-
         }
+        logger.info("Invalid refresh token from: {}", user.getEmail());
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Please sign in again");
     }
 
@@ -108,5 +107,15 @@ public class AuthController {
 
         response.addCookie(AuthService.getCookie("refreshToken", null, "/api/auth/refresh-token"));
         return ResponseEntity.status(200).body("Logged out");
+    }
+
+    @PostMapping("/reset-password/init")
+    public ResponseEntity<?> resetPasswordInit() {
+        return ResponseEntity.ok().body("Please check your inbox for instructions");
+    }
+
+    @PostMapping("/reset-password/complete")
+    public ResponseEntity<?> resetPasswordComplete() {
+        return ResponseEntity.ok().body("Password changed successfully.");
     }
 }

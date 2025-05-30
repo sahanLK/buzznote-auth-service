@@ -1,5 +1,6 @@
 package com.buzznote.auth.security;
 
+import com.buzznote.auth.controller.AuthController;
 import com.buzznote.auth.models.User;
 import com.buzznote.auth.repo.UserRepo;
 import com.buzznote.auth.service.AuthService;
@@ -7,6 +8,8 @@ import com.buzznote.auth.service.JwtService;
 import com.buzznote.auth.service.RedisService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -26,6 +29,8 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
     @Autowired
     private RedisService redisService;
+
+    private static final Logger logger = LoggerFactory.getLogger(OAuth2SuccessHandler.class);
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {

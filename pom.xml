@@ -10,7 +10,7 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.buzznote</groupId>
-    <artifactId>buzznote</artifactId>
+    <artifactId>buzznote-auth-service</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>buzznote</name>
     <description>Buzznote Email Newsletter Platform Core</description>
