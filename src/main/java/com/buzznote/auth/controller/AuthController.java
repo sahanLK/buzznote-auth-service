@@ -10,6 +10,8 @@ import com.buzznote.auth.service.RedisService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +19,8 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,6 +38,8 @@ public class AuthController {
     @Autowired
     private RedisService redisService;
 
+    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
+
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest user, HttpServletResponse response) {
         try {
@@ -49,9 +55,11 @@ public class AuthController {
 
             redisService.setAccessToken(fetchedUser.getEmail(), accessToken);
             redisService.setRefreshToken(fetchedUser.getEmail(), refreshToken);
+            logger.info("Login success: {}", fetchedUser.getEmail());
             return ResponseEntity.ok(new LoginResponse(accessToken));
 
         } catch (AuthenticationException e) {
+            logger.info("Login failed: {} -> {}", user.getEmail(), e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
@@ -93,7 +101,11 @@ public class AuthController {
     }
 
     @GetMapping("/logout")
-    public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<?> logout(HttpServletResponse response) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UserDetails userDetails = (UserDetails) auth.getPrincipal();
+        redisService.removeUser(userDetails.getUsername());
+
         response.addCookie(AuthService.getCookie("refreshToken", null, "/api/auth/refresh-token"));
         return ResponseEntity.status(200).body("Logged out");
     }

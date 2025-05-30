@@ -14,20 +14,16 @@ public class RedisService {
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
-    public void saveJwt(String userId, String token) {
-        redisTemplate.opsForValue().set(userId, token);
-    }
-
     public void setAccessToken(String email, String accessToken) {
         Map<String, String> tokens = new HashMap<>();
         tokens.put("accessToken", accessToken);
-        redisTemplate.opsForHash().putAll("user:" + email, tokens);
+        redisTemplate.opsForHash().putAll("USER:" + email, tokens);
     }
 
     public void setRefreshToken(String email, String refreshToken) {
         Map<String, String> tokens = new HashMap<>();
         tokens.put("refreshToken", refreshToken);
-        redisTemplate.opsForHash().putAll("user:" + email, tokens);
+        redisTemplate.opsForHash().putAll("USER:" + email, tokens);
     }
 
     public boolean isValidAccessToken(String userId, String token) {
@@ -39,10 +35,14 @@ public class RedisService {
     }
 
     private String getAccessToken(String email) {
-        return (String) redisTemplate.opsForHash().get("user:" + email, "accessToken");
+        return (String) redisTemplate.opsForHash().get("USER:" + email, "accessToken");
     }
 
     private String getRefreshToken(String email) {
-        return (String) redisTemplate.opsForHash().get("user:" + email, "refreshToken");
+        return (String) redisTemplate.opsForHash().get("USER:" + email, "refreshToken");
+    }
+
+    public void removeUser(String userId) {
+        redisTemplate.delete("USER:" + userId);
     }
 }
