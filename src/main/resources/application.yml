@@ -22,6 +22,12 @@ spring:
     enabled: true
     locations: classpath:db/migrations
 
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: ${RABBITMQ_USERNAME}
+    password: ${RABBITMQ_PASSWORD}
+
   security:
     oauth2:
       client:

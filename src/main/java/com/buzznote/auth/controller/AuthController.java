@@ -6,8 +6,8 @@ import com.buzznote.auth.dto.RegisterRequest;
 import com.buzznote.auth.models.User;
 import com.buzznote.auth.service.AuthService;
 import com.buzznote.auth.service.JwtService;
+import com.buzznote.auth.service.RabbitEmailService;
 import com.buzznote.auth.service.RedisService;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -37,6 +37,9 @@ public class AuthController {
 
     @Autowired
     private RedisService redisService;
+
+    @Autowired
+    private RabbitEmailService rabbitEmailService;
 
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
@@ -109,8 +112,9 @@ public class AuthController {
         return ResponseEntity.status(200).body("Logged out");
     }
 
-    @PostMapping("/reset-password/init")
+    @GetMapping("/reset-password/init")
     public ResponseEntity<?> resetPasswordInit() {
+        rabbitEmailService.sendPasswordResetEmail("user@example.com", "xyz-token");
         return ResponseEntity.ok().body("Please check your inbox for instructions");
     }
 
