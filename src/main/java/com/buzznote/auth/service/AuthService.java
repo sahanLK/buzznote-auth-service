@@ -3,6 +3,8 @@ package com.buzznote.auth.service;
 import java.util.Optional;
 
 import jakarta.servlet.http.Cookie;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -16,14 +18,17 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AuthService {
 
-    private final UserRepo repo;
+    private final UserRepo userRepo;
     private final PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private RedisService redisService;
 
     public void registerUser(RegisterRequest user) {
         User newUser = new User();
         newUser.setEmail(user.getEmail());
         newUser.setPassword(passwordEncoder.encode(user.getPassword()));
-        repo.save(newUser);
+        userRepo.save(newUser);
     }
 
     public static Cookie getCookie(String key, String value, String path) {
@@ -36,6 +41,13 @@ public class AuthService {
     }
 
     public Optional<User> findUserByEmail(String email) {
-        return repo.findByEmail(email);
+        return userRepo.findByEmail(email);
+    }
+
+    public void updateUserPassword(String token, String newPassword) {
+        User user = userRepo.findByEmail(redisService.getPasswordResetUserEmail(token))
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepo.save(user);
     }
 }

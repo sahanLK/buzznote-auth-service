@@ -1,8 +1,6 @@
 package com.buzznote.auth.controller;
 
-import com.buzznote.auth.dto.LoginRequest;
-import com.buzznote.auth.dto.LoginResponse;
-import com.buzznote.auth.dto.RegisterRequest;
+import com.buzznote.auth.dto.*;
 import com.buzznote.auth.models.User;
 import com.buzznote.auth.service.AuthService;
 import com.buzznote.auth.service.JwtService;
@@ -10,6 +8,8 @@ import com.buzznote.auth.service.RabbitEmailService;
 import com.buzznote.auth.service.RedisService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.validator.routines.EmailValidator;
+import org.apache.coyote.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +24,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
+import javax.swing.text.html.Option;
 import java.security.Principal;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/auth")
@@ -112,14 +114,32 @@ public class AuthController {
         return ResponseEntity.status(200).body("Logged out");
     }
 
-    @GetMapping("/reset-password/init")
-    public ResponseEntity<?> resetPasswordInit() {
-        rabbitEmailService.sendPasswordResetEmail("user@example.com", "xyz-token");
-        return ResponseEntity.ok().body("Please check your inbox for instructions");
+    @PostMapping("/reset-password/init")
+    public ResponseEntity<?> resetPasswordInit(@RequestBody PasswordResetInitRequest body) {
+        EmailValidator validator = EmailValidator.getInstance();
+        if (validator.isValid(body.getEmail())) {
+            Optional<User> user = authService.findUserByEmail(body.getEmail());
+            if (user.isPresent()) {
+                rabbitEmailService.sendPasswordResetEmail(body.getEmail());
+                return ResponseEntity.ok().body("Email sent. please check your inbox.");
+            }
+        }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Please enter a valid email");
+    }
+
+    @PostMapping("/reset-password/validate")
+    public ResponseEntity<?> validatePasswordResetToken(@RequestBody PasswordResetValidateRequest body) {
+        if (redisService.validatePasswordResetToken(body.getToken())) {
+            return ResponseEntity.ok().body(new PasswordResetRequestResponse(body.getToken(), true));
+        }
+        return ResponseEntity.ok().body(new PasswordResetRequestResponse(body.getToken(), false));
     }
 
     @PostMapping("/reset-password/complete")
-    public ResponseEntity<?> resetPasswordComplete() {
+    public ResponseEntity<?> resetPasswordComplete(@RequestBody PasswordResetCompleteRequest body) {
+        if (redisService.validatePasswordResetToken(body.getToken())) {
+            authService.updateUserPassword(body.getToken(), body.getNewPassword());
+        }
         return ResponseEntity.ok().body("Password changed successfully.");
     }
 }

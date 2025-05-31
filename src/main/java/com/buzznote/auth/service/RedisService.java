@@ -1,11 +1,14 @@
 package com.buzznote.auth.service;
 
+import com.buzznote.auth.exception.InvalidTokenException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 
 @Service
@@ -44,5 +47,24 @@ public class RedisService {
 
     public void removeUser(String userId) {
         redisTemplate.delete("USER:" + userId);
+    }
+
+    public void setPasswordResetToken(String to, String token) {
+        ValueOperations<String, Object> ops = redisTemplate.opsForValue();
+        ops.set("RESET_TOKEN:" + token, to, 15, TimeUnit.MINUTES);
+    }
+
+    public String getPasswordResetUserEmail(String token) {
+        Object obj = redisTemplate.opsForValue().get("RESET_TOKEN:" + token);
+        if (obj == null) {
+            throw new InvalidTokenException("Reset token is invalid or expired");
+        }
+        return obj.toString();
+    }
+
+    public boolean validatePasswordResetToken(String token) {
+        Object obj = redisTemplate.opsForValue().get("RESET_TOKEN:" + token);
+        String value = obj != null ? obj.toString() : null;
+        return value != null;
     }
 }
