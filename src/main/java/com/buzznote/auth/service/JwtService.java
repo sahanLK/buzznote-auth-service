@@ -7,6 +7,8 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -17,12 +19,17 @@ import java.util.Date;
 public class JwtService {
 
     private final String SECRET_KEY = System.getProperty("SECRET_KEY");
+    private final Integer ACCESS_TOKEN_EXPIRE_TIME = Integer.valueOf(System.getProperty("ACCESS_TOKEN_EXPIRE_TIME"));
+    private final Integer REFRESH_TOKEN_EXPIRE_TIME = Integer.valueOf(System.getProperty("REFRESH_TOKEN_EXPIRE_TIME"));
+
+    @Autowired
+    private Environment env;
 
     public String createAccessToken(User user) {
         return Jwts.builder()
                 .setSubject(user.getEmail())
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10))
+                .setExpiration(new Date(System.currentTimeMillis() + ACCESS_TOKEN_EXPIRE_TIME))
                 .signWith(getKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
@@ -31,7 +38,7 @@ public class JwtService {
         return Jwts.builder()
                 .setSubject(user.getEmail())
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 1000L * 60 * 60 * 24 * 7))
+                .setExpiration(new Date(System.currentTimeMillis() + REFRESH_TOKEN_EXPIRE_TIME))
                 .signWith(getKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
