@@ -1,7 +1,6 @@
 package com.buzznote.auth.service;
 
 import com.buzznote.auth.models.User;
-import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -63,7 +62,7 @@ public class JwtService {
 
     public boolean validateRefreshToken(String token) {
         try {
-            Claims claims = Jwts.parserBuilder()
+            Jwts.parserBuilder()
                     .setSigningKey(getKey())
                     .build()
                     .parseClaimsJws(token)

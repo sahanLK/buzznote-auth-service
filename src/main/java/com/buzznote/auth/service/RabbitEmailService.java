@@ -1,6 +1,6 @@
 package com.buzznote.auth.service;
 
-import com.buzznote.auth.config.RabbitMQConfig;
+import com.buzznote.auth.config.RabbitConfig;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 
@@ -17,13 +17,13 @@ public class RabbitEmailService {
 
     private final SecureRandom random = new SecureRandom();
 
-    public String generateToken() {
-        return new BigInteger(130, random).toString(32);
-    }
-
     public RabbitEmailService(RabbitTemplate rabbitTemplate, RedisService redisService) {
         this.rabbitTemplate = rabbitTemplate;
         this.redisService = redisService;
+    }
+
+    public String generateToken() {
+        return new BigInteger(130, random).toString(32);
     }
 
     public void sendPasswordResetEmail(String to) {
@@ -31,9 +31,8 @@ public class RabbitEmailService {
         message.put("to", to);
 
         String token = this.generateToken();
-        System.out.println("Generated Token: " + token);
         redisService.setPasswordResetToken(to, token);
         message.put("token", token);
-        rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE, RabbitMQConfig.ROUTING_KEY, message);
+        rabbitTemplate.convertAndSend(RabbitConfig.EXCHANGE, RabbitConfig.ROUTING_KEY, message);
     }
 }
