@@ -33,6 +33,6 @@ public class RabbitEmailService {
         String token = this.generateToken();
         redisService.setPasswordResetToken(to, token);
         message.put("token", token);
-        rabbitTemplate.convertAndSend(RabbitConfig.EXCHANGE, RabbitConfig.ROUTING_KEY, message);
+        rabbitTemplate.convertAndSend(RabbitConfig.PASSWORD_RESET_EMAIL_EXCHANGE, RabbitConfig.PASSWORD_RESET_EMAIL_ROUTING_KEY, message);
     }
 }
