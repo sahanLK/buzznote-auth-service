@@ -40,6 +40,15 @@ public class AuthService {
         return cookie;
     }
 
+    public static Cookie deleteCookie(String key, String value, String path) {
+        Cookie cookie = new Cookie(key, value);
+        cookie.setHttpOnly(true);
+        cookie.setSecure(true);
+        cookie.setPath(path);
+        cookie.setMaxAge(0);
+        return cookie;
+    }
+
     public Optional<User> findUserByEmail(String email) {
         return userRepo.findByEmail(email);
     }

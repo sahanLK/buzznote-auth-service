@@ -54,6 +54,7 @@ public class AuthController {
             String accessToken = jwtService.createAccessToken(fetchedUser);
             String refreshToken = jwtService.createRefreshToken(fetchedUser);
             response.addCookie(AuthService.getCookie("refreshToken", refreshToken, "/api/auth/refresh-token"));
+            response.addCookie(AuthService.getCookie("accessToken", accessToken, "/"));
 
             redisService.setAccessToken(fetchedUser.getEmail(), accessToken);
             redisService.setRefreshToken(fetchedUser.getEmail(), refreshToken);
@@ -89,6 +90,7 @@ public class AuthController {
             if (redisService.isValidRefreshToken(user.getEmail(), refreshToken)) {
                 String newRefreshToken = jwtService.createRefreshToken(user);
                 String newAccessToken = jwtService.createAccessToken(user);
+                response.addCookie(AuthService.getCookie("accessToken", newAccessToken, "/"));
                 response.addCookie(AuthService.getCookie("refreshToken", newRefreshToken, "/api/auth/refresh-token"));
 
                 redisService.setAccessToken(user.getEmail(), newAccessToken);
@@ -104,10 +106,12 @@ public class AuthController {
     @GetMapping("/logout")
     public ResponseEntity<?> logout(HttpServletResponse response) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        System.out.println(auth.getPrincipal());
         UserDetails userDetails = (UserDetails) auth.getPrincipal();
         redisService.removeUser(userDetails.getUsername());
 
-        response.addCookie(AuthService.getCookie("refreshToken", null, "/api/auth/refresh-token"));
+        response.addCookie(AuthService.deleteCookie("refreshToken", null, "/api/auth/refresh-token"));
+        response.addCookie(AuthService.deleteCookie("accessToken", null, "/"));
         return ResponseEntity.status(200).body("Logged out");
     }
 
