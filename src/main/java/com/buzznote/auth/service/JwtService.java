@@ -52,7 +52,6 @@ public class JwtService {
     }
 
     public boolean validateAccessToken(String token) {
-//        return extractUsername(token).equals(userDetails.getUsername()) && !isTokenExpired(token);
         try {
             Jwts.parserBuilder()
                     .setSigningKey(getKey())

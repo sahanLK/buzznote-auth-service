@@ -106,7 +106,6 @@ public class AuthController {
     @GetMapping("/logout")
     public ResponseEntity<?> logout(HttpServletResponse response) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        System.out.println(auth.getPrincipal());
         UserDetails userDetails = (UserDetails) auth.getPrincipal();
         redisService.removeUser(userDetails.getUsername());
 
