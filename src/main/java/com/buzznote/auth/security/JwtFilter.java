@@ -32,12 +32,6 @@ public class JwtFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull FilterChain chain) throws ServletException, IOException {
-        String path = request.getRequestURI();
-        if (path.startsWith("/api/auth/login") || path.startsWith("/api/auth/refresh-token")) {
-            chain.doFilter(request, response);
-            return;
-        }
-
         String authHeader = request.getHeader("Authorization");
         String token = null;
 
@@ -49,6 +43,12 @@ public class JwtFilter extends OncePerRequestFilter {
                     .map(Cookie::getValue)
                     .findFirst()
                     .orElse(null);
+        }
+
+        String path = request.getRequestURI();
+        if (path.startsWith("/api/auth/login") || path.startsWith("/api/auth/refresh-token") || token == null) {
+            chain.doFilter(request, response);
+            return;
         }
 
         String username = jwtService.extractUsername(token);
